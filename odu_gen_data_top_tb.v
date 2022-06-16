@@ -78,25 +78,10 @@ module odu_gen_data_top_tb();
         #20
             rst = 1'b0;
         #100
-
-            cfg_addr = 16'd1; cfg_din = 16'h8183;
-        #10 cfg_n_cs = 1'b0;  cfg_n_we = 1'b0;
-        #5  cfg_n_cs = 1'b1;  cfg_n_we = 1'b1;
-        #10
-
-            cfg_addr = 16'd3; cfg_din = 16'h0707;
-        #10 cfg_n_cs = 1'b0;  cfg_n_we = 1'b0;
-        #5  cfg_n_cs = 1'b1;  cfg_n_we = 1'b1;
-        #10
-
-            cfg_addr = 16'd6; cfg_din = 16'h8082;
-        #10 cfg_n_cs = 1'b0;  cfg_n_we = 1'b0;
-        #5  cfg_n_cs = 1'b1;  cfg_n_we = 1'b1;
-        #10
-
-            cfg_addr = 16'd11; cfg_din = 16'h0001;
-        #10 cfg_n_cs = 1'b0;   cfg_n_we = 1'b0;
-        #5  cfg_n_cs = 1'b1;   cfg_n_we = 1'b1;
+        write_config(4'd1, 16'h8183);
+        write_config(4'd3, 16'h0707); 
+        write_config(4'd6, 16'h8082); 
+        write_config(4'd11, 16'h0001);  
         #1000;
     end
     
@@ -111,6 +96,21 @@ module odu_gen_data_top_tb();
             end
         end 
     end 
+    
+    task write_config;
+        input [ 3:0] config_address; 
+        input [15:0] config_value;
+        begin 
+            @(negedge clk) begin 
+                cfg_n_cs = 1'b0;  
+                cfg_n_we = 1'b0;
+                cfg_addr = config_address; 
+                cfg_din = config_value; 
+            end
+            #(clk_period)  cfg_n_cs = 1'b1;  
+                           cfg_n_we = 1'b1;     
+        end   
+    endtask
 
 
 endmodule
