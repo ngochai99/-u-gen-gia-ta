@@ -40,7 +40,8 @@ module odu_gen_data_top (
         wire [386:0] fifo_data_out   [0:79];
         wire         w_start;
         wire [386:0] w_data_out;
-        
+        wire [ 79:0] fifo_empty;
+
         assign data_out = w_data_out; 
         
         odu_ctr_data #(
@@ -73,8 +74,10 @@ module odu_gen_data_top (
                 .type_chid       (type_chid[i]       ),
                 .fifo_read_enable(fifo_read_enable[i]),
                 .fifo_data_out   (fifo_data_out[i]   ),
+                .fifo_empty      (fifo_empty[i]      ),
                 .data_chid       (                   ),
                 .data_valid_chid (                   )
+            
             );
         end
     endgenerate
@@ -86,7 +89,8 @@ module odu_gen_data_top (
         .fifo_read_enable(fifo_read_enable ),
         .data_out        (data_out         ),
         .chid_value      (chid_out         ),
-        
+        .fifo_empty      (fifo_empty       ),
+
         .data_in00       (fifo_data_out[0] ),
         .data_in01       (fifo_data_out[1] ),
         .data_in02       (fifo_data_out[2] ),
