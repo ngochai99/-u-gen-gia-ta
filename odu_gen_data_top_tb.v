@@ -97,9 +97,7 @@ module odu_gen_data_top_tb();
             cfg_addr = 16'd11; cfg_din = 16'h0001;
         #10 cfg_n_cs = 1'b0;   cfg_n_we = 1'b0;
         #5  cfg_n_cs = 1'b1;   cfg_n_we = 1'b1;
-        #99000;
-
-        $finish;
+        #1000;
     end
     
     always begin 
