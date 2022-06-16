@@ -27,7 +27,8 @@ module odu_count_gen_fifo(
     input           enable_chid,
     input           type_chid,  
     input           fifo_read_enable,            
-        
+    
+    output          fifo_empty,     
     output [386:0]  fifo_data_out,
     output [386:0]  data_chid,
     output          data_valid_chid
@@ -47,7 +48,8 @@ module odu_count_gen_fifo(
     assign data_valid_chid      = w_data_valid_chid; 
     assign fifo_data_out        = w_fifo_data_out;
     assign w_fifo_read_enable   = fifo_read_enable & ~w_fifo_empty;
-    
+    assign fifo_empty           = w_fifo_empty; 
+
     odu_count_reg odu_count_reg_instance(
         .clk             (clk),
         .rst             (rst), 
