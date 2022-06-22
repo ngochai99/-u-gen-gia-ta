@@ -29,7 +29,8 @@ module odu_gen_data(
         output [383:0]  data_gen_out, 
         output          valid_gen_out,
         output          frame_start_out,
-        output          row_start_out
+        output          row_start_out, 
+        output [7:0]    mfas_out
         );
               
         // osu frame 192 byte include 7 byte header and 185 byte payload. 
@@ -38,7 +39,11 @@ module odu_gen_data(
         // ------------------ OSU frame--------------------------------
         //      |   header (7byte)  ||      payload (185byte)          |
         //      |       0           ||00|01||02|.................|B7|B8|
-          
+              
+        //localparam [383:0]  osu_pack1_value = 384'h00_00_00_00_00_00_00_00_01_02_03_04_05_06_07_08_09_0A_0B_0C_0D_0E_0F_10_11_12_13_14_15_16_17_18_19_1A_1B_1C_1D_1E_1F_20_21_22_23_24_25_26_27_28;
+        //localparam [383:0]  osu_pack2_value = 384'h29_2A_2B_2C_2D_2E_2F_30_31_32_33_34_35_36_37_38_39_3A_3B_3C_3D_3E_3F_40_41_42_43_44_45_46_47_48_49_4A_4B_4C_4D_4E_4F_50_51_52_53_54_55_56_57_58;
+        //localparam [383:0]  osu_pack3_value = 384'h59_5A_5B_5C_5D_5E_5F_60_61_62_63_64_65_66_67_68_69_6A_6B_6C_6D_6E_6F_70_71_72_73_74_75_76_77_78_79_7A_7B_7C_7D_7E_7F_80_81_82_83_84_85_86_87_88;
+        //localparam [383:0]  osu_pack4_value = 384'h89_8A_8B_8C_8D_8E_8F_90_91_92_93_94_95_96_97_98_99_9A_9B_9C_9D_9E_9F_A0_A1_A2_A3_A4_A5_A6_A7_A8_A9_AA_AB_AC_AD_AE_AF_B0_B1_B2_B3_B4_B5_B6_B7_B8;
         
         localparam [127:0]  odu_header_row1 = 128'h11_11_11_11_11_11_11_11_11_11_11_11_11_11_11_11;
         localparam [127:0]  odu_header_row2 = 128'h22_22_22_22_22_22_22_22_22_22_22_22_22_22_22_22;
@@ -107,9 +112,14 @@ module odu_gen_data(
         reg [3:0] odu_row_count_next;  
         
         reg [127:0] odu_header_row_value;  // bien nay de luu gia tri cua hearder sap duoc gan 
+        
+        wire[7:0]  odu_row_count_sub_1;
+        reg [7:0]  odu_mfas_value; 
+        reg [7:0]  mfas_out_reg;
         //===============================================================
         //==========================osu gen data test====================
         //===============================================================
+        
         wire        osu_data_gen_valid;
         wire [383:0]osu_data_gen_out;
         wire        enable_osu_gen;   
@@ -291,7 +301,7 @@ module odu_gen_data(
 
         always @* begin 
             case (odu_row_count_reg[1:0])
-                2'b00: odu_header_row_value = odu_header_row1;
+                2'b00: odu_header_row_value = { odu_header_row1[127:16],odu_mfas_value,odu_header_row1[7:0]};
                 2'b01: odu_header_row_value = odu_header_row2;
                 2'b10: odu_header_row_value = odu_header_row3;
                 2'b11: odu_header_row_value = odu_header_row4; 
@@ -300,7 +310,31 @@ module odu_gen_data(
          
         //===============================================================
         //===============================================================
-        //===============================================================        
+        //======select_mfas    ==========================================   
+
+        always @* begin 
+            case (odu_row_count_reg[3:2])
+                2'b00: odu_mfas_value = 8'h00;
+                2'b01: odu_mfas_value = 8'h40;
+                2'b10: odu_mfas_value = 8'h80;
+                2'b11: odu_mfas_value = 8'hff; 
+            endcase 
+        end 
+
+        assign odu_row_count_sub_1 = odu_row_count_reg - 4'b0001; 
+        
+        always @* begin 
+            case (odu_row_count_sub_1[3:2])
+                2'b00: mfas_out_reg = 8'h00;
+                2'b01: mfas_out_reg = 8'h40;
+                2'b10: mfas_out_reg = 8'h80;
+                2'b11: mfas_out_reg = 8'h80; 
+            endcase 
+        end 
+         
+        //===============================================================
+        //===============================================================
+        //===============================================================                
         
         always @(posedge clk) begin 
             if(rst)begin 
@@ -309,7 +343,7 @@ module odu_gen_data(
                 state_reg           <= 0; 
                 osu_count_reg       <= 0; 
                 osu_gen_enable_reg  <= 0; 
-                odu_row_count_reg   <= 0; 
+                //odu_row_count_reg   <= 0; 
             end else begin 
                 if(enable) begin 
                     data_gen_out_reg    <= data_gen_out_next; 
@@ -317,7 +351,7 @@ module odu_gen_data(
                     state_reg           <= state_next; 
                     osu_count_reg       <= osu_count_next; 
                     osu_gen_enable_reg  <= osu_gen_enable_next;  
-                    odu_row_count_reg   <= odu_row_count_next;      
+                    //odu_row_count_reg   <= odu_row_count_next;      
                 end else 
                     valid_gen_out_reg   <= 0; 
             end 
@@ -325,6 +359,22 @@ module odu_gen_data(
         //===============================================================  
         //=============================================================== 
         
+        always @(posedge clk) begin 
+            if (rst) begin
+                odu_row_count_reg <= 'd0; 
+            end else begin 
+                if(enable) begin 
+                    if(odu_row_count_reg == 4'd12)
+                        odu_row_count_reg <= 'd0;
+                    else 
+                        odu_row_count_reg <= odu_row_count_next;  
+                end
+            end
+        end 
+
+        //===============================================================  
+        //===============================================================
+
 //        always @(posedge clk) begin 
 //            if(rst) begin 
 //                state_reg           <= 0;     
@@ -335,7 +385,9 @@ module odu_gen_data(
     assign data_gen_out     = data_gen_out_reg; 
     assign valid_gen_out    = valid_gen_out_reg; 
     assign enable_osu_gen   = osu_gen_enable_reg & enable; 
-    assign frame_start_out  =  data_gen_out_reg[383:368] == 16'h1111;
+    assign frame_start_out  = data_gen_out_reg[383:368] == 16'h1111;
+    assign mfas_out         = mfas_out_reg; 
+    
     assign row_start_out    = (data_gen_out_reg[383:368] == 16'h2222)
                             ||(data_gen_out_reg[383:368] == 16'h3333)
                             ||(data_gen_out_reg[383:368] == 16'h4444) 
