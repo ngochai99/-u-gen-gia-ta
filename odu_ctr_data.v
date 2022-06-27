@@ -22,7 +22,7 @@
 
 module odu_ctr_data#(
         parameter DATA_WIDTH_CFG = 16, 
-        parameter ADDR_WIDTH_CFG = 4
+        parameter ADDR_WIDTH_CFG = 5
     )
     (
         input   clk, 
@@ -36,7 +36,9 @@ module odu_ctr_data#(
         
         output  [79:0] enable_chid, 
         output  [79:0] type_chid,
-        output		   start 
+        output		   start, 
+    	
+    	input 	[79:0] i_error_chid
     );
 
 	localparam STATE_SETUP_CONGIF   = 1'b0;
@@ -66,7 +68,7 @@ module odu_ctr_data#(
 //    reg   [DATA_WIDTH_CFG -1 :0] type_chid_48to63_reg;
 //    reg   [DATA_WIDTH_CFG -1 :0] type_chid_64to79_reg;
         
-    //reg   [DATA_WIDTH_CFG -1 :0] start_reg;   
+ //   reg   [DATA_WIDTH_CFG -1 :0] start_reg;   
 
     reg 						 state_next; 
     reg 						 state_reg; 
@@ -88,6 +90,8 @@ module odu_ctr_data#(
 		.cfg_n_cs                    	(cfg_n_cs                    ),
 		.cfg_n_oe                    	(cfg_n_oe                    ),
 		.cfg_n_we                    	(cfg_n_we                    ),
+
+		.i_error_chid               	(i_error_chid				 ),
 		//output port
 		.cfg_start_reg               	(cfg_start_reg               ),
 		.cfg_value_type_chid_0to15   	(cfg_value_type_chid[15:0]   ),

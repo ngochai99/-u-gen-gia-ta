@@ -29,19 +29,19 @@ module odu_count_gen_fifo(
     input           fifo_read_enable,            
     
     output          fifo_empty,     
-    output [386:0]  fifo_data_out,
-    output [386:0]  data_chid,
+    output [394:0]  fifo_data_out,
+    output [383:0]  data_chid,
     output          data_valid_chid
     );
     
     wire [383:0] w_data_chid; 
     wire         w_data_valid_chid;
-    
     wire         w_frame_start_chid; 
     wire         w_row_start_chid; 
-    
+    wire [7:0]   w_mfas_chid; 
+
     wire         w_fifo_read_enable;                    
-    wire [386:0] w_fifo_data_out;        
+    wire [394:0] w_fifo_data_out;        
     wire         w_fifo_empty; 
     
     assign data_chid            = w_data_chid; 
@@ -49,6 +49,7 @@ module odu_count_gen_fifo(
     assign fifo_data_out        = w_fifo_data_out;
     assign w_fifo_read_enable   = fifo_read_enable & ~w_fifo_empty;
     assign fifo_empty           = w_fifo_empty; 
+
 
     odu_count_reg odu_count_reg_instance(
         .clk             (clk),
@@ -66,12 +67,13 @@ module odu_count_gen_fifo(
         .data_gen_out   (w_data_chid), 
         .valid_gen_out  (w_data_valid_chid),
         .frame_start_out(w_frame_start_chid),
-        .row_start_out  (w_row_start_chid)
+        .row_start_out  (w_row_start_chid),
+        .mfas_out       (w_mfas_chid)
     );
         
     fifo_syn_depth8 #(
-        .DATA_WIDTH(387), 
-        .ADDR_WIDTH(3)
+        .DATA_WIDTH(395), 
+        .ADDR_WIDTH(1)
         )
     fifo_syn_depth8_instace (
         //input port 
@@ -80,9 +82,10 @@ module odu_count_gen_fifo(
         .w_en   (w_data_valid_chid), 
         .r_en   (w_fifo_read_enable), 
         .w_data ({w_data_valid_chid,
+                  w_data_chid,
                   w_frame_start_chid, 
                   w_row_start_chid, 
-                  w_data_chid}),
+                  w_mfas_chid}),
         //output port 
         .empty  (w_fifo_empty), 
         .full   (), 

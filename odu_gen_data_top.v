@@ -26,27 +26,28 @@ module odu_gen_data_top (
     input          cfg_n_cs,
     input          cfg_n_we,
     input          cfg_n_oe,
-    input  [  3:0] cfg_addr,
+    input  [  4:0] cfg_addr,
     input  [ 15:0] cfg_din ,
     output [ 15:0] cfg_dout,
     output   [6:0] chid_out,
-    output [386:0] data_out
+    output [394:0] data_out,
 
+    input   [79:0] i_error_chid 
     ); 
 
         wire [ 79:0] enable_chid           ;
         wire [ 79:0] type_chid             ;
         wire [ 79:0] fifo_read_enable      ;
-        wire [386:0] fifo_data_out   [0:79];
+        wire [394:0] fifo_data_out   [0:79];
         wire         w_start;
-        wire [386:0] w_data_out;
+        wire [394:0] w_data_out;
         wire [ 79:0] fifo_empty;
 
         assign data_out = w_data_out; 
         
         odu_ctr_data #(
             .DATA_WIDTH_CFG('d16),
-            .ADDR_WIDTH_CFG('d4 )
+            .ADDR_WIDTH_CFG('d5 )
         ) odu_ctr_data_instance(
             .clk        (clk        ),
             .rst        (rst        ),
@@ -60,7 +61,8 @@ module odu_gen_data_top (
             
             .type_chid  (type_chid  ),
             .enable_chid(enable_chid),
-            .start      (w_start    )
+            .start      (w_start    ),
+            .i_error_chid(i_error_chid)
         );
 
     
