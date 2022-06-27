@@ -22,7 +22,7 @@
 
 module odu_cfg_2_ctr#(
         parameter DATA_WIDTH_CFG = 16, 
-        parameter ADDR_WIDTH_CFG = 4
+        parameter ADDR_WIDTH_CFG = 5
     )
     (
         input   clk, 
@@ -32,6 +32,9 @@ module odu_cfg_2_ctr#(
         input   cfg_n_oe, 
         input   [ADDR_WIDTH_CFG -1 :0] cfg_addr, 
         input   [DATA_WIDTH_CFG -1 :0] cfg_din, 
+        
+        input   [79:0]     i_error_chid,
+
         output  [DATA_WIDTH_CFG -1 :0] cfg_dout,   
         
         output  [DATA_WIDTH_CFG -1 :0] cfg_value_enable_chid_0to15,
@@ -53,7 +56,7 @@ module odu_cfg_2_ctr#(
     );
     
     
-    reg [DATA_WIDTH_CFG - 1: 0] cfg_reg [0: 11]; 
+    reg [DATA_WIDTH_CFG - 1: 0] cfg_reg [0: 2**ADDR_WIDTH_CFG - 1]; 
     reg [DATA_WIDTH_CFG - 1: 0] status_reg; 
     //addr = 1 -> 5, reg hold value of enable signal from id 0->80, 
     //addr = 6 -> 10, reg hold value of type signal from id 0->80,
@@ -94,6 +97,25 @@ module odu_cfg_2_ctr#(
 //--------------------------------------------------------
 //--------------------------------------------------------    
 //--------------------------------------------------------   
+    always @(posedge clk) begin
+        if(rst) begin
+            cfg_reg [16] <= 16'd0;
+            cfg_reg [17] <= 16'd0;
+            cfg_reg [18] <= 16'd0;
+            cfg_reg [19] <= 16'd0;
+            cfg_reg [20] <= 16'd0;
+        end else begin
+            cfg_reg [16] <= i_error_chid[15:0];
+            cfg_reg [17] <= i_error_chid[31:16];
+            cfg_reg [18] <= i_error_chid[47:32]; 
+            cfg_reg [19] <= i_error_chid[63:48]; 
+            cfg_reg [20] <= i_error_chid[79:64]; 
+        end
+    end
+//--------------------------------------------------------
+//--------------------------------------------------------    
+//--------------------------------------------------------   
+
     always @(posedge clk) begin 
         if(rst) begin
             status_reg <= 16'd0;  
@@ -103,12 +125,12 @@ module odu_cfg_2_ctr#(
  //--------------------------------------------------------
 //--------------------------------------------------------    
 //--------------------------------------------------------    
-    assign write_enable                 = (~cfg_n_cs) & (~cfg_n_we);
-    assign cfg_dout                     = ((~cfg_n_cs) & (~cfg_n_oe))
-                                          ? ((cfg_addr == 16'd12) ? status_reg : cfg_reg[cfg_addr])  
-                                          : 16'hzzzz;         
+    assign write_enable   = (~cfg_n_cs) & (~cfg_n_we) & (~cfg_addr[ADDR_WIDTH_CFG - 1]);
+    assign cfg_dout       = ((~cfg_n_cs) & (~cfg_n_oe))
+                          ? ((cfg_addr == 16'd12) ? status_reg : cfg_reg[cfg_addr])  
+                          : 16'h0000;         
     
-    assign cfg_start_reg                = cfg_reg[11];
+    assign cfg_start_reg  = cfg_reg[11];
     
     assign cfg_value_enable_chid_0to15  = cfg_reg[1];
     assign cfg_value_enable_chid_16to31 = cfg_reg[2];
