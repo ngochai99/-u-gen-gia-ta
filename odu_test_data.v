@@ -53,6 +53,11 @@ module odu_test_data(
     
     reg         r_status_curr; // right or wrong;
     reg         r_status_next;    
+    
+    //reg [8:0]   r_count_packet; 
+    reg [15:0]   r_count_frame_total; 
+    reg  [15:0]  r_count_frame_error; 
+
 
 	wire 		w_data_match; 
 	wire 		w_mfas_same; 
@@ -68,7 +73,6 @@ module odu_test_data(
 		.i_data_chid  (i_data_chid),
 		.o_payload_osu(w_payload_osu_cur)
 	);
-
 	
 	always @(posedge clk) begin
 		if(rst) begin
@@ -131,16 +135,51 @@ module odu_test_data(
 	always @(posedge clk) begin 
 		if(rst) begin
 			r_state_curr <= 0;
-			r_status_curr <= 1'b0; 
+			r_status_curr <= 1'b0;
+			
 		end else begin
-			if(i_valid_chid) begin
+		    if(i_valid_chid) begin
 				r_state_curr <= r_state_next;
 				r_status_curr <= r_status_next; 
-		      end
+		    end
 		end
 		
 	end
 	
 	assign o_fr_error = (r_state_curr == STATE_ERROR);
 	
+//----------------------------------------------------------
+//------------------------ Additional count frame-----------
+//----------------------------------------------------------
+	
+    always @(posedge clk) begin 
+        if (rst) begin 
+            r_count_frame_total <= 16'd0; 
+        end else begin 
+            if(i_valid_chid && i_fs_chid && i_rs_chid)    
+                r_count_frame_total <= r_count_frame_total + 16'd1; 
+        end
+    end
+ 
+    always @(posedge clk) begin 
+        if (rst) begin 
+            r_count_frame_error <= 16'd0; 
+        end else begin 
+            if(i_valid_chid && i_fs_chid && i_rs_chid && o_fr_error)    
+                r_count_frame_error <= r_count_frame_error + 16'd1; 
+        end
+    end  
+    
+    
+    reg [15:0] r_count_packet; 
+    
+    always @(posedge clk) begin 
+        if (rst) begin 
+            r_count_packet <= 16'd0; 
+        end else begin 
+            if(i_valid_chid)    
+                r_count_packet <= r_count_packet + 16'd1; 
+        end
+    end
+        
 endmodule
