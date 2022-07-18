@@ -266,7 +266,7 @@ module odu_gen_data_new (
                 endcase 
             end else 
                 if(r_odu_row_count == 4'd12) 
-                    r_odu_row_count <= r_odu_row_count; 
+                    r_odu_row_count <= 4'd0; 
         end
     end
     //=============================================
@@ -287,7 +287,7 @@ module odu_gen_data_new (
     //=============================================
     always @* begin
         case(r_odu_row_count) 
-            4'd1, 4'd5, 4'd12: r_odu_fs_out = 1'b1; 
+            4'd1, 4'd5, 4'd9: r_odu_fs_out = 1'b1; 
             default :          r_odu_fs_out = 1'b0; 
         endcase 
     end 
